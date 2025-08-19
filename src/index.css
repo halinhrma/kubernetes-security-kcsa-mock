@@ -30,6 +30,15 @@ body {
   box-shadow: var(--shadow-md);
   transition: background-color var(--transition-base) var(--ease-in-out),
               box-shadow var(--transition-base) var(--ease-in-out);
+  max-width: 100%;
+}
+
+.App:has(.exam) {
+  max-width: 900px;
+}
+
+.App:has(.results) {
+  max-width: 900px;
 }
 
 h1 {
@@ -470,6 +479,7 @@ input[type="number"]:focus {
   justify-content: space-between;
 
 }
+
 
 /* Responsive layout for KCSA Mock Exam Pro */
 .main-layout {

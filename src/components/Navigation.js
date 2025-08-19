@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Navigation({ currentIndex, totalQuestions, onPrevious, onNext, onFlag, isFlagged, onStar, isStarred }) {
+function Navigation({ currentIndex, totalQuestions, onPrevious, onNext, onFlag, isFlagged, onStar, isStarred, questionId }) {
   return (
     <div className="navigation">
       <button
@@ -13,8 +13,8 @@ function Navigation({ currentIndex, totalQuestions, onPrevious, onNext, onFlag, 
 
       <div className="nav-actions">
         <button
-          className="nav-btn nav-star"
-          onClick={onStar}
+          className={`nav-btn nav-star ${isStarred ? 'starred' : ''}`}
+          onClick={() => onStar(questionId)}
           title={isStarred ? 'Remove from favorites' : 'Add to favorites'}
         >
           {isStarred ? '★' : '☆'} {isStarred ? 'Unstar' : 'Star'}

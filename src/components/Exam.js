@@ -117,6 +117,7 @@ function Exam({
             isFlagged={flaggedQuestions.includes(questions[currentQuestionIndex].id)}
             onStar={handleStar}
             isStarred={starredQuestions.includes(questions[currentQuestionIndex].id)}
+            questionId={questions[currentQuestionIndex].id}
           />
         </div>
       </div>

@@ -67,6 +67,9 @@ function ReviewFlagged({
             }}
             onFlag={handleFlag}
             isFlagged={true}
+            onStar={handleStar}
+            isStarred={starredQuestions.includes(currentQuestion.id)}
+            questionId={currentQuestion.id}
           />
         </>
       ) : (

@@ -125,17 +125,35 @@
 }
 
 /* Star button in navigation */
-.nav-star {
-  background-color: #f59e0b;
-  color: white;
+.nav-btn.nav-star {
+  background: none !important;
+  border: none !important;
+  font-size: 1.5em !important;
+  cursor: pointer !important;
+  padding: 0.5rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease-in-out !important;
+  color: #6b7280 !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.nav-star:hover {
-  background-color: #d97706;
+.nav-btn.nav-star:hover {
+  background-color: #eff6ff !important;
+  color: #3b82f6 !important;
+  transform: scale(1.1) !important;
 }
 
-.nav-star:active {
-  background-color: #b45309;
+.nav-btn.nav-star.starred {
+  color: #f59e0b !important;
+}
+
+.nav-btn.nav-star.starred:hover {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
 }
 
 /* Exam Header with Timer and Finish Button */
