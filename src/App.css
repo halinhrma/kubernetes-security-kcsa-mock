@@ -3,7 +3,6 @@
   font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  max-width: 900px;
   margin: 0 auto;
   padding: var(--space-5);
   color: var(--color-text-primary);
@@ -107,7 +106,7 @@
 /* Results Component Styles */
 .results {
   padding: var(--space-6) 0;
-  max-width: 100%;
+  max-width: 900px;
 }
 
 .results-header {
@@ -660,7 +659,7 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-xl);
   font-size: var(--font-size-xl);
-  width: 150px;
+  min-width: 150px;
   text-align: center;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
@@ -1368,6 +1367,7 @@
 
 /* Add styles for other components like Exam, Navigation, ProgressBar, SideMenu if needed */
 .exam {
+    max-width: 900px;
   /* Styles for the main exam container */
 }
 .timer {

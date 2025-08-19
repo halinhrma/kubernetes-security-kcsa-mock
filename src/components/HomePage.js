@@ -121,6 +121,7 @@ function HomePage({
                   min="1"
                   max={maxQuestions}
                   placeholder="Enter number of questions"
+                  style={{ minWidth: 100 }}
                 />
                 <span className="input-hint">Max: {maxQuestions}</span>
               </div>

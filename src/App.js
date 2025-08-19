@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Exam from './components/Exam';
 import Results from './components/Results';
 import ReviewFlagged from './components/ReviewFlagged';
-import HomePage from './components/HomePage';
+import KCSAMockExamPro from './components/KCSAMockExamPro';
 import Header from './components/Header';
 import { getAllQuestions, getAvailableDomains } from './questionsDatabase'; // adjust the path as needed
 
@@ -183,7 +183,7 @@ function App() {
       <Header />
 
       {!examStarted && !examFinished && !reviewingFlagged ? (
-        <HomePage
+        <KCSAMockExamPro
           numQuestions={numQuestions}
           setNumQuestions={setNumQuestions}
           startExam={startExam}
@@ -192,7 +192,7 @@ function App() {
           maxQuestions={availableDomains.length > 0 ? 1000 : 0} // Placeholder, actual limit is dynamic
           availableDomains={availableDomains}
           selectedDomains={selectedDomains}
-          setSelectedDomains={selectedDomains}
+          setSelectedDomains={setSelectedDomains}
           starredQuestions={starredQuestions}
           setStarredQuestions={setStarredQuestions}
           onRestart={restartExam}

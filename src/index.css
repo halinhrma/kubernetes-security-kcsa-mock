@@ -23,7 +23,6 @@ body {
               color var(--transition-slow) var(--ease-in-out);
 }
 .App {
-  max-width: 800px;
   margin: 0 auto;
   background-color: var(--color-surface-elevated);
   padding: var(--space-5);
@@ -462,6 +461,72 @@ input[type="number"]:focus {
 @media (max-width: 480px) {
   .responsive-image {
     max-width: 400px;
+  }
+}
+
+.advanced-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+/* Responsive layout for KCSA Mock Exam Pro */
+.main-layout {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 16px;
+}
+
+.main-content {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content {
+    grid-column: span 2;
+  }
+  
+  .sidebar {
+    grid-column: 1;
+  }
+  .advanced-options{
+    display: grid;
+  }
+}
+
+/* Desktop layout - ensure flex layout */
+@media (min-width: 769px) {
+  .main-layout {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .main-content {
+    flex: 2;
+  }
+  
+  .sidebar {
+    flex: 1;
   }
 }
 
