@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function SideMenu({ questions, currentQuestionIndex, setCurrentQuestionIndex, flaggedQuestions, userAnswers, isOpen, onClose }) {
+function SideMenu({ questions, currentQuestionIndex, setCurrentQuestionIndex, flaggedQuestions, starredQuestions, userAnswers, isOpen, onClose }) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -40,12 +40,13 @@ function SideMenu({ questions, currentQuestionIndex, setCurrentQuestionIndex, fl
                 {questions.map((question, index) => {
                   const isActive = index === currentQuestionIndex;
                   const isFlagged = flaggedQuestions.includes(question.id);
+                  const isStarred = starredQuestions.includes(question.id);
                   const isAnswered = userAnswers[question.id];
                   
                   return (
                     <motion.li
                       key={question.id}
-                      className={`question-item ${isActive ? 'active' : ''} ${isFlagged ? 'flagged' : ''} ${isAnswered ? 'answered' : ''}`}
+                      className={`question-item ${isActive ? 'active' : ''} ${isFlagged ? 'flagged' : ''} ${isStarred ? 'starred' : ''} ${isAnswered ? 'answered' : ''}`}
                       onClick={() => {
                         setCurrentQuestionIndex(index);
                         onClose();
@@ -56,6 +57,9 @@ function SideMenu({ questions, currentQuestionIndex, setCurrentQuestionIndex, fl
                       <div className="question-content">
                         <span className="question-number">Question {index + 1}</span>
                         <div className="question-indicators">
+                          {isStarred && (
+                            <span className="star-icon" title="Starred">★</span>
+                          )}
                           {isFlagged && (
                             <span className="flag-icon" title="Flagged">🚩</span>
                           )}

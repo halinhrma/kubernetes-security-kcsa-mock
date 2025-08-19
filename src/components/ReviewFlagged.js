@@ -8,6 +8,8 @@ function ReviewFlagged({
   setUserAnswers,
   flaggedQuestions,
   setFlaggedQuestions,
+  starredQuestions,
+  setStarredQuestions,
   onFinish
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -23,15 +25,34 @@ function ReviewFlagged({
     setFlaggedQuestions(flaggedQuestions.filter(id => id !== currentQuestionId));
   };
 
+  const handleStar = (questionId) => {
+    if (starredQuestions.includes(questionId)) {
+      setStarredQuestions(starredQuestions.filter(id => id !== questionId));
+    } else {
+      setStarredQuestions([...starredQuestions, questionId]);
+    }
+  };
+
   return (
     <div className="review-flagged">
-      <h2>Review Flagged Questions</h2>
+      <div className="review-header">
+        <h2>Review Flagged Questions</h2>
+        <button 
+          className="finish-review-btn"
+          onClick={onFinish}
+          title="Finish review and see results"
+        >
+          Finish Review
+        </button>
+      </div>
       {flaggedQuestionIds.length > 0 ? (
         <>
           <Question
             question={currentQuestion}
             onAnswer={handleAnswer}
             userAnswer={userAnswers[currentQuestion.id] || []}
+            onStar={handleStar}
+            isStarred={starredQuestions.includes(currentQuestion.id)}
           />
           <Navigation
             currentIndex={currentIndex}

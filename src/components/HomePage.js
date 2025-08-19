@@ -7,7 +7,10 @@ function HomePage({
   maxQuestions,
   availableDomains,
   selectedDomains,
-  setSelectedDomains
+  setSelectedDomains,
+  starredQuestions,
+  setStarredQuestions,
+  onRestart
 }) {
   const [showOptions, setShowOptions] = useState(false); // State for options visibility
 
@@ -25,6 +28,14 @@ function HomePage({
     });
   };
 
+  const handleStartRegularExam = () => {
+    startExam(false);
+  };
+
+  const handleStartStarredExam = () => {
+    startExam(true);
+  };
+
   return (
     <div className="homepage-container">
       <div className="homepage-inner">
@@ -39,28 +50,48 @@ function HomePage({
             <div className="setup-top-row">
               {/* Input Group - Label and Input separated for flex alignment */}
               <div className="number-input-group">
-                 <label htmlFor="num-questions-input" className="input-label">Number of questions:</label>
-                 <input
-                   id="num-questions-input"
-                   type="number"
-                   value={numQuestions}
-                   onChange={(e) => setNumQuestions(Math.max(1, Math.min(maxQuestions, parseInt(e.target.value) || 0)))}
-                   className="question-input"
-                 />
-     {/* Start Button */}
+                <label htmlFor="num-questions-input" className="input-label">Number of questions:</label>
+                <input
+                  id="num-questions-input"
+                  type="number"
+                  value={numQuestions}
+                  onChange={(e) => setNumQuestions(Math.max(1, Math.min(maxQuestions, parseInt(e.target.value) || 0)))}
+                  className="question-input"
+                />
+              </div>
+            </div>
+
+            {/* Start Buttons */}
+            <div className="start-buttons-container">
               <button
-                onClick={startExam}
+                onClick={handleStartRegularExam}
                 className="start-button"
                 disabled={selectedDomains.length === 0}
               >
-                Start Exam
+                Start Regular Exam
               </button>
-              </div>
-         
+
+              <button
+                onClick={handleStartStarredExam}
+                className="start-button starred"
+                disabled={selectedDomains.length === 0 || starredQuestions.length === 0}
+                title={starredQuestions.length === 0 ? "No starred questions yet" : `Start exam with ${starredQuestions.length} starred questions`}
+              >
+                Start Starred Exam ({starredQuestions.length})
+              </button>
             </div>
 
+            {/* Starred Questions Info */}
+            {starredQuestions.length > 0 && (
+              <div className="starred-info">
+                <p className="starred-text">
+                  ⭐ You have {starredQuestions.length} starred question{starredQuestions.length !== 1 ? 's' : ''} saved
+                </p>
+              </div>
+            )}
+
             {/* Separator (Optional) */}
-             <hr className="setup-separator" />
+            <hr className="setup-separator" />
 
             {/* Extra Options Toggle - Moved below top row */}
             <div className="extra-options-toggle" style={{ textAlign: 'center' }}>
@@ -82,24 +113,24 @@ function HomePage({
                   Choose specific domains to focus your practice exam. Only questions from the selected domains will be included.
                 </p>
                 <div className="domain-checkboxes">
-                {availableDomains.map(domain => (
-                  <div key={domain} className="domain-checkbox-item" style={{ marginBottom: '5px' }}>
-                    <input
-                      type="checkbox"
-                      id={`domain-${domain}`}
-                      value={domain}
-                      checked={selectedDomains.includes(domain)}
-                      onChange={() => handleDomainChange(domain)}
-                      className="domain-checkbox"
-                    />
-                    <label htmlFor={`domain-${domain}`} className="domain-label">
-                      {/* Replaced underscore replacement with CSS text-transform potentially */}
-                      {domain}
-                    </label>
-                  </div>
-                ))}
+                  {availableDomains.map(domain => (
+                    <div key={domain} className="domain-checkbox-item" style={{ marginBottom: '5px' }}>
+                      <input
+                        type="checkbox"
+                        id={`domain-${domain}`}
+                        value={domain}
+                        checked={selectedDomains.includes(domain)}
+                        onChange={() => handleDomainChange(domain)}
+                        className="domain-checkbox"
+                      />
+                      <label htmlFor={`domain-${domain}`} className="domain-label">
+                        {/* Replaced underscore replacement with CSS text-transform potentially */}
+                        {domain}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
             )}
             {/* End Domain Selection Section */}
 
@@ -121,6 +152,9 @@ function HomePage({
             <p className="about-text">
               The exam is timed, and you will have 1 minute per question. You can flag questions to review later. Once you finish the exam, you can review your answers and see explanations for each question.
             </p>
+            <p className="about-text">
+              <strong>New Feature:</strong> Star your favorite questions to create custom practice exams! Use the star button (☆) next to any question to save it, then start a "Starred Exam" to practice only with your saved questions.
+            </p>
           </div>
           {/* Invite people to contribute to the project on GitHub. */}
           <div className="about-footer">
@@ -141,12 +175,12 @@ function HomePage({
             <h2 className="section-title">About the Creator</h2>
           </div>
           <div className="image-container">
-  <img 
-    src="/Kubestronaut.png" 
-    alt="Kubestronaut" 
-    className="responsive-image"
-  />
-</div>
+            <img
+              src="/Kubestronaut.png"
+              alt="Kubestronaut"
+              className="responsive-image"
+            />
+          </div>
 
           <div className="creator-content">
             <dl className="creator-details">
@@ -162,14 +196,14 @@ function HomePage({
               </div>
               <div className="detail-row">
                 <dt className="detail-label">About</dt>
-                               
+
 
                 <dd className="detail-content">
-               
- 
+
+
                   <p>Hi, I'm Thiago. I'm a cloud-native developer with a passion for Kubernetes and secure systems. With a background spanning Brazil, Japan, and now Australia, I enjoy tackling complex problems. 💻</p>
                   <p className="mt-2">I'm an active member of the CNCF Security TAG and co-organizer of the Melbourne Kubernetes User Group. When I'm not coding, I'm usually playing Go or solving a Rubik's cube.</p>
-            </dd>
+                </dd>
               </div>
               <div className="detail-row">
                 <dt className="detail-label">Links</dt>
@@ -191,7 +225,7 @@ function HomePage({
           </div>
           <div className="community-content">
             <dl className="community-details">
-                <div className="detail-row">
+              <div className="detail-row">
                 <dt className="detail-label">TAG Security and Compliance</dt>
                 <dd className="detail-content">
                   <p>Member of TAG Security and Compliance APAC</p>

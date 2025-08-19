@@ -14,7 +14,9 @@ function Exam({
   setCurrentQuestionIndex,
   timeLeft,
   setTimeLeft,
-  onFinish
+  onFinish,
+  starredQuestions,
+  setStarredQuestions
 }) {
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
@@ -46,6 +48,14 @@ function Exam({
     }
   };
 
+  const handleStar = (questionId) => {
+    if (starredQuestions.includes(questionId)) {
+      setStarredQuestions(starredQuestions.filter(id => id !== questionId));
+    } else {
+      setStarredQuestions([...starredQuestions, questionId]);
+    }
+  };
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -58,7 +68,16 @@ function Exam({
 
   return (
     <div className="exam">
-      <div className="timer">Time left: {formatTime(timeLeft)}</div>
+      <div className="exam-header">
+        <div className="timer">Time left: {formatTime(timeLeft)}</div>
+        <button 
+          className="finish-exam-btn"
+          onClick={onFinish}
+          title="Finish exam and review answers"
+        >
+          Finish Exam
+        </button>
+      </div>
       <div className="exam-content">
         <button className="menu-toggle" onClick={toggleSideMenu} aria-label="Toggle question menu">
           <span className="menu-icon">☰</span>
@@ -69,6 +88,7 @@ function Exam({
           currentQuestionIndex={currentQuestionIndex}
           setCurrentQuestionIndex={setCurrentQuestionIndex}
           flaggedQuestions={flaggedQuestions}
+          starredQuestions={starredQuestions}
           userAnswers={userAnswers}
           isOpen={isSideMenuOpen}
           onClose={() => setIsSideMenuOpen(false)}
@@ -79,6 +99,8 @@ function Exam({
             question={questions[currentQuestionIndex]}
             onAnswer={handleAnswer}
             userAnswer={userAnswers[questions[currentQuestionIndex].id] || []}
+            onStar={handleStar}
+            isStarred={starredQuestions.includes(questions[currentQuestionIndex].id)}
           />
           <Navigation
             currentIndex={currentQuestionIndex}
@@ -93,6 +115,8 @@ function Exam({
             }}
             onFlag={handleFlag}
             isFlagged={flaggedQuestions.includes(questions[currentQuestionIndex].id)}
+            onStar={handleStar}
+            isStarred={starredQuestions.includes(questions[currentQuestionIndex].id)}
           />
         </div>
       </div>

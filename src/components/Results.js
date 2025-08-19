@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react'; // Import useEffect
 import { motion } from 'framer-motion';
 import './Results.css'; // Import the Results-specific CSS
 
-function Results({ questions, userAnswers, onRestart }) {
+function Results({ questions, userAnswers, onRestart, starredQuestions, setStarredQuestions }) {
   // State to manage visibility of sources for each question
   const [showSourcesMap, setShowSourcesMap] = useState({});
 
@@ -34,6 +34,15 @@ function Results({ questions, userAnswers, onRestart }) {
       ...prevMap,
       [questionId]: !prevMap[questionId] // Toggle the boolean value
     }));
+  };
+
+  // Handle starring/unstarring questions
+  const handleStar = (questionId) => {
+    if (starredQuestions.includes(questionId)) {
+      setStarredQuestions(starredQuestions.filter(id => id !== questionId));
+    } else {
+      setStarredQuestions([...starredQuestions, questionId]);
+    }
   };
 
   // Helper to check if a single question is answered correctly
@@ -123,11 +132,27 @@ function Results({ questions, userAnswers, onRestart }) {
     <div className="results">
       <div className="results-header">
         <h2 className="results-title">Exam Results</h2>
+        <button 
+          className="restart-results-btn"
+          onClick={onRestart}
+          title="Start a new exam"
+        >
+          🔄 Start New Exam
+        </button>
         <div className="overall-score">
           <span className="score-label">Overall Score:</span>
           <span className="score-value">{overallScoreData.score} out of {questions.length}</span>
           <span className="score-percentage">({overallScoreData.percentage}%)</span>
         </div>
+        
+        {/* Starred Questions Summary */}
+        {starredQuestions && starredQuestions.length > 0 && (
+          <div className="starred-summary">
+            <p className="starred-summary-text">
+              ⭐ You have {starredQuestions.length} starred question{starredQuestions.length !== 1 ? 's' : ''} saved for future practice
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Display Domain Scores */}
@@ -158,7 +183,19 @@ function Results({ questions, userAnswers, onRestart }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h3 className="question-text">{question.question}</h3>
+            <div className="question-review-header">
+              <h3 className="question-text">{question.question}</h3>
+              {setStarredQuestions && (
+                <button 
+                  className={`star-button ${starredQuestions && starredQuestions.includes(question.id) ? 'starred' : ''}`}
+                  onClick={() => handleStar(question.id)}
+                  aria-label={starredQuestions && starredQuestions.includes(question.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  title={starredQuestions && starredQuestions.includes(question.id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {starredQuestions && starredQuestions.includes(question.id) ? '★' : '☆'}
+                </button>
+              )}
+            </div>
             
             <div className="answer-section">
               <p className="answer-item">

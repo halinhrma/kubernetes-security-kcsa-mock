@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Question({ question, onAnswer, userAnswer }) {
+function Question({ question, onAnswer, userAnswer, onStar, isStarred }) {
   if (!question) {
     return (
       <div className="question">
@@ -30,6 +30,10 @@ function Question({ question, onAnswer, userAnswer }) {
     }
   };
 
+  const handleStar = () => {
+    onStar(question.id);
+  };
+
   // Ensure question.options is an array before mapping
   const optionsList = Array.isArray(question.options) ? question.options : [];
   // Ensure userAnswer is always an array for checking 'includes'
@@ -37,7 +41,17 @@ function Question({ question, onAnswer, userAnswer }) {
 
   return (
     <div className="question">
-      <h2>{question.question}</h2>
+      <div className="question-header">
+        <h2>{question.question}</h2>
+        <button 
+          className={`star-button ${isStarred ? 'starred' : ''}`}
+          onClick={handleStar}
+          aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
+          title={isStarred ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          {isStarred ? '★' : '☆'}
+        </button>
+      </div>
       <form>
         {optionsList.map((option, index) => (
           <div key={index}>

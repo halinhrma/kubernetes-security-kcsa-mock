@@ -8,6 +8,7 @@ import { getAllQuestions, getAvailableDomains } from './questionsDatabase'; // a
 
 import useLocalStorage from './hooks/useLocalStorage';
 import { Analytics } from "@vercel/analytics/react"
+import './styles/star-feature.css';
 
 function App() {
   // Removed unused 'questions' and 'setQuestions' state
@@ -19,11 +20,12 @@ function App() {
   const [examQuestions, setExamQuestions] = useLocalStorage('examQuestions', []);
   const [userAnswers, setUserAnswers] = useLocalStorage('userAnswers', {});
   const [flaggedQuestions, setFlaggedQuestions] = useLocalStorage('flaggedQuestions', []);
+  const [starredQuestions, setStarredQuestions] = useLocalStorage('starredQuestions', []);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useLocalStorage('currentQuestionIndex', 0);
   const [timeLeft, setTimeLeft] = useLocalStorage('timeLeft', 0);
   const [availableDomains, setAvailableDomains] = useState([]);
   const [selectedDomains, setSelectedDomains] = useLocalStorage('selectedDomains', []);
-
+  const [useStarredOnly, setUseStarredOnly] = useState(false);
 
   // Load available domains and potentially all questions initially (or just domains)
   useEffect(() => {
@@ -43,7 +45,7 @@ function App() {
         console.error("Error loading domains:", err);
         setLoading(false); // Ensure loading stops even on error
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount, disable warning for conditional setSelectedDomains
 
   // Load persisted state from localStorage
@@ -79,19 +81,31 @@ function App() {
   };
   // Removed console.log("Exam Questions:", questions); as it logged all questions before filtering
 
-  const startExam = async () => { // Make async to await getAllQuestions
+  const startExam = async (starredOnly = false) => { // Make async to await getAllQuestions
     if (selectedDomains.length === 0) {
       console.error("Cannot start exam with no domains selected.");
       // Optionally show an error message to the user
       return;
     }
 
+    // Check if user wants to use starred questions only
+    if (starredOnly && starredQuestions.length === 0) {
+      alert("You don't have any starred questions yet. Please star some questions first or start a regular exam.");
+      return;
+    }
+
     setLoading(true); // Show loading indicator while fetching/processing
     try {
-      const filteredQuestions = await getAllQuestions(selectedDomains);
+      let filteredQuestions = await getAllQuestions(selectedDomains);
+
+      // If using starred questions only, filter to only include starred ones
+      if (starredOnly) {
+        filteredQuestions = filteredQuestions.filter(q => starredQuestions.includes(q.id));
+        console.log(`Filtered to ${filteredQuestions.length} starred questions`);
+      }
 
       if (filteredQuestions.length === 0) {
-        console.error("No questions found for the selected domains.");
+        console.error("No questions found for the selected criteria.");
         // Optionally show an error message to the user
         setLoading(false);
         return;
@@ -100,10 +114,9 @@ function App() {
       // Adjust numQuestions if it exceeds the number of available filtered questions
       const actualNumQuestions = Math.min(numQuestions, filteredQuestions.length);
       if (numQuestions > filteredQuestions.length) {
-        console.warn(`Requested ${numQuestions} questions, but only ${filteredQuestions.length} are available for the selected domains. Using ${filteredQuestions.length}.`);
+        console.warn(`Requested ${numQuestions} questions, but only ${filteredQuestions.length} are available for the selected criteria. Using ${filteredQuestions.length}.`);
         setNumQuestions(filteredQuestions.length); // Update state if adjusted
       }
-
 
       const shuffledQuestions = shuffleArray(filteredQuestions);
       const selectedQuestions = shuffledQuestions.slice(0, actualNumQuestions);
@@ -116,6 +129,7 @@ function App() {
       setFlaggedQuestions([]);
       setCurrentQuestionIndex(0);
       setTimeLeft(actualNumQuestions * 60); // Use actual number of questions for timer
+      setUseStarredOnly(starredOnly);
       localStorage.setItem('examStarted', 'true');
       localStorage.setItem('examFinished', 'false');
       localStorage.setItem('reviewingFlagged', 'false');
@@ -153,6 +167,7 @@ function App() {
     setCurrentQuestionIndex(0);
     setTimeLeft(0);
     setExamQuestions([]);
+    setUseStarredOnly(false);
     localStorage.removeItem('examStarted');
     localStorage.removeItem('examFinished');
     localStorage.removeItem('reviewingFlagged');
@@ -166,7 +181,7 @@ function App() {
   return (
     <div className="App">
       <Header />
-      
+
       {!examStarted && !examFinished && !reviewingFlagged ? (
         <HomePage
           numQuestions={numQuestions}
@@ -177,7 +192,10 @@ function App() {
           maxQuestions={availableDomains.length > 0 ? 1000 : 0} // Placeholder, actual limit is dynamic
           availableDomains={availableDomains}
           selectedDomains={selectedDomains}
-          setSelectedDomains={setSelectedDomains}
+          setSelectedDomains={selectedDomains}
+          starredQuestions={starredQuestions}
+          setStarredQuestions={setStarredQuestions}
+          onRestart={restartExam}
         />
       ) : (
         <>
@@ -193,6 +211,8 @@ function App() {
               timeLeft={timeLeft}
               setTimeLeft={setTimeLeft}
               onFinish={startReview}
+              starredQuestions={starredQuestions}
+              setStarredQuestions={setStarredQuestions}
             />
           )}
           {reviewingFlagged && (
@@ -202,6 +222,8 @@ function App() {
               setUserAnswers={setUserAnswers}
               flaggedQuestions={flaggedQuestions}
               setFlaggedQuestions={setFlaggedQuestions}
+              starredQuestions={starredQuestions}
+              setStarredQuestions={setStarredQuestions}
               onFinish={finishExam}
             />
           )}
@@ -210,6 +232,8 @@ function App() {
               questions={examQuestions}
               userAnswers={userAnswers}
               onRestart={restartExam}
+              starredQuestions={starredQuestions}
+              setStarredQuestions={setStarredQuestions}
             />
           )}
         </>

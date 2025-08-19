@@ -67,13 +67,6 @@
 .theme-toggle-btn:hover {
   color: var(--color-primary-500);
 }
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast) var(--ease-in-out);
-  white-space: nowrap;
-}
 
 .theme-toggle-btn:hover {
   background-color: var(--color-primary-50);
@@ -106,6 +99,11 @@
   }
   
   .header-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
 /* Results Component Styles */
 .results {
   padding: var(--space-6) 0;
@@ -115,6 +113,9 @@
 .results-header {
   margin-bottom: var(--space-8);
   text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .results-title {
@@ -618,6 +619,37 @@
   opacity: 0.6;
 }
 
+.start-buttons-container {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.start-button.starred {
+  background-color: var(--color-warning-500);
+}
+
+.start-button.starred:hover:not(:disabled) {
+  background-color: var(--color-warning-600);
+}
+
+.starred-info {
+  text-align: center;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-warning-50);
+  border: 1px solid var(--color-warning-200);
+  border-radius: var(--radius-md);
+  color: var(--color-warning-700);
+}
+
+.starred-text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
 
 /* --- Keep Existing Styles Below (Exam, Results, etc.) --- */
 /* Add placeholders for other component styles if they were in this file */
@@ -860,6 +892,51 @@
   margin-bottom: var(--space-5);
   transition: all var(--transition-base) var(--ease-in-out);
 }
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-4);
+}
+
+.question-header h2 {
+  margin: 0;
+  flex: 1;
+  margin-right: var(--space-3);
+}
+
+.star-button {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast) var(--ease-in-out);
+  color: var(--color-text-secondary);
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-button:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-500);
+  transform: scale(1.1);
+}
+
+.star-button.starred {
+  color: var(--color-warning-500);
+}
+
+.star-button.starred:hover {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-600);
+}
+
 .question h2 {
   margin-top: 0;
   margin-bottom: 15px;
