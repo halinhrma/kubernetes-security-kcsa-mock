@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';
 
 function HomePage({
   numQuestions,
@@ -12,12 +12,11 @@ function HomePage({
   setStarredQuestions,
   onRestart
 }) {
-  const [showOptions, setShowOptions] = useState(false); // State for options visibility
+  const [showOptions, setShowOptions] = useState(false);
 
   const handleDomainChange = (domain) => {
     setSelectedDomains(prevSelected => {
       if (prevSelected.includes(domain)) {
-        // Prevent deselecting the last domain
         if (prevSelected.length === 1) {
           return prevSelected;
         }
@@ -36,227 +35,189 @@ function HomePage({
     startExam(true);
   };
 
+  const getDomainDisplayName = (domain) => {
+    return domain
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   return (
     <div className="homepage-container">
-      <div className="homepage-inner">
-        {/* Removed text-center class from the main wrapper */}
-        <div>
-          <h1 className="exam-title text-center">Ace the Exam with Practice</h1>
-          <hr className="setup-separator" />
-          {/* Exam Setup Card */}
-          <div className="exam-setup-card">
+      {/* Hero Section */}
+      <div className="hero-section">
+        <div className="hero-background">
+          <div className="hero-pattern"></div>
+          <div className="hero-gradient"></div>
+        </div>
+        <div className="hero-content">
+          <div className="hero-badge">
+            <span className="badge-icon">🚀</span>
+            <span className="badge-text">KCSA Mock Exam</span>
+          </div>
+          <h1 className="hero-title">
+            Master Kubernetes Security
+          </h1>
+          <p className="hero-subtitle">
+            Prepare for your KCSA certification with our comprehensive practice exams.
+            Test your knowledge across all security domains with real-world scenarios.
+          </p>
 
-            {/* Top row: Number input and Start button */}
-            <div className="setup-top-row">
-              {/* Input Group - Label and Input separated for flex alignment */}
-              <div className="number-input-group">
-                <label htmlFor="num-questions-input" className="input-label">Number of questions:</label>
+          {/* Stats Grid */}
+          <div className="hero-stats">
+            <div className="stat-card">
+              <div className="stat-icon">📚</div>
+              <div className="stat-content">
+                <span className="stat-number">{maxQuestions}</span>
+                <span className="stat-label">Questions Available</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">⭐</div>
+              <div className="stat-content">
+                <span className="stat-number">{starredQuestions.length}</span>
+                <span className="stat-label">Starred Questions</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">🛡️</div>
+              <div className="stat-content">
+                <span className="stat-number">{availableDomains?.length || 0}</span>
+                <span className="stat-label">Security Domains</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Quick Start Section */}
+        <div className="section-container">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="title-icon">⚡</span>
+              Quick Start
+            </h2>
+            <p className="section-description">
+              Get started with your practice exam in seconds. Choose your question count and begin immediately.
+            </p>
+          </div>
+
+          <div className="quick-start-card">
+            {/* Question Count Input */}
+            <div className="input-section">
+              <label htmlFor="num-questions-input" className="input-label">
+                <span className="label-icon">📝</span>
+                Number of Questions
+              </label>
+              <div className="input-wrapper">
                 <input
                   id="num-questions-input"
                   type="number"
                   value={numQuestions}
                   onChange={(e) => setNumQuestions(Math.max(1, Math.min(maxQuestions, parseInt(e.target.value) || 0)))}
                   className="question-input"
+                  min="1"
+                  max={maxQuestions}
+                  placeholder="Enter number of questions"
                 />
+                <span className="input-hint">Max: {maxQuestions}</span>
               </div>
             </div>
 
-            {/* Start Buttons */}
-            <div className="start-buttons-container">
+            {/* Action Buttons */}
+            <div className="action-buttons">
               <button
                 onClick={handleStartRegularExam}
-                className="start-button"
+                className="primary-button"
                 disabled={selectedDomains.length === 0}
               >
-                Start Regular Exam
+                <span className="button-icon">▶️</span>
+                <span className="button-text">Start Practice Exam</span>
+                <div className="button-shine"></div>
               </button>
 
               <button
                 onClick={handleStartStarredExam}
-                className="start-button starred"
+                className="secondary-button"
                 disabled={selectedDomains.length === 0 || starredQuestions.length === 0}
                 title={starredQuestions.length === 0 ? "No starred questions yet" : `Start exam with ${starredQuestions.length} starred questions`}
               >
-                Start Starred Exam ({starredQuestions.length})
+                <span className="button-icon">⭐</span>
+                <span className="button-text">Starred Questions ({starredQuestions.length})</span>
               </button>
             </div>
 
             {/* Starred Questions Info */}
             {starredQuestions.length > 0 && (
               <div className="starred-info">
-                <p className="starred-text">
-                  ⭐ You have {starredQuestions.length} starred question{starredQuestions.length !== 1 ? 's' : ''} saved
-                </p>
+                <div className="starred-badge">
+                  <span className="star-icon">⭐</span>
+                  <span className="starred-text">
+                    You have {starredQuestions.length} starred question{starredQuestions.length !== 1 ? 's' : ''} saved
+                  </span>
+                </div>
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Separator (Optional) */}
-            <hr className="setup-separator" />
+        {/* Advanced Options Section */}
+        <div className="section-container">
+          <div className="options-toggle">
+            <button
+              onClick={() => setShowOptions(!showOptions)}
+              className="toggle-button"
+              aria-expanded={showOptions}
+            >
+              <span className="toggle-icon">{showOptions ? '▼' : '▶'}</span>
+              <span className="toggle-text">
+                {showOptions ? 'Hide Advanced Options' : 'Show Advanced Options'}
+              </span>
+            </button>
+          </div>
 
-            {/* Extra Options Toggle - Moved below top row */}
-            <div className="extra-options-toggle" style={{ textAlign: 'center' }}>
-              <button
-                onClick={() => setShowOptions(!showOptions)}
-                className="options-toggle-button"
-                style={{ display: 'inline-block', margin: '0 auto' }}
-              >
-                {showOptions ? 'Hide Extra Options' : 'Show Extra Options'}
-              </button>
-            </div>
-
-            {/* Domain Selection Section (Conditional) - Remains below toggle */}
-            {showOptions && availableDomains && availableDomains.length > 0 && (
-              <div className="domain-options-card">
-                {/* Added emoji to title */}
-                <h3 className="domain-selection-title">✨ Select Exam Domains</h3>
-                <p className="domain-selection-description">
-                  Choose specific domains to focus your practice exam. Only questions from the selected domains will be included.
+          {showOptions && availableDomains && availableDomains.length > 0 && (
+            <div className="domain-selection-card">
+              <div className="card-header">
+                <h3 className="card-title">
+                  <span className="title-icon">🎯</span>
+                  Customize Your Exam
+                </h3>
+                <p className="card-description">
+                  Select specific security domains to focus your practice. Only questions from selected domains will be included in your exam.
                 </p>
-                <div className="domain-checkboxes">
-                  {availableDomains.map(domain => (
-                    <div key={domain} className="domain-checkbox-item" style={{ marginBottom: '5px' }}>
+              </div>
+
+              <div className="domain-grid">
+                {availableDomains.map(domain => (
+                  <div key={domain} className="domain-item">
+                    <label className="domain-checkbox-label">
                       <input
                         type="checkbox"
-                        id={`domain-${domain}`}
                         value={domain}
                         checked={selectedDomains.includes(domain)}
                         onChange={() => handleDomainChange(domain)}
                         className="domain-checkbox"
                       />
-                      <label htmlFor={`domain-${domain}`} className="domain-label">
-                        {/* Replaced underscore replacement with CSS text-transform potentially */}
-                        {domain}
-                      </label>
-                    </div>
-                  ))}
+                      <span className="checkbox-custom"></span>
+                      <span className="domain-name">{getDomainDisplayName(domain)}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="domain-summary">
+                <div className="summary-badge">
+                  <span className="summary-icon">📊</span>
+                  <span className="summary-text">
+                    {selectedDomains.length} of {availableDomains.length} domains selected
+                  </span>
                 </div>
               </div>
-            )}
-            {/* End Domain Selection Section */}
-
-          </div>
-          {/* End Exam Setup Card */}
-
-        </div> {/* Close the wrapper div */}
-        <hr className="setup-separator" />
-
-        {/* Keep About, Creator, Community sections as they were */}
-        <div className="about-container">
-          <div className="about-header">
-            <h2 className="section-title">About the App</h2>
-          </div>
-          <div className="about-content">
-            <p className="about-text">
-              This app is a mock exam for the Kubernetes Security (KCSA) certification. It consists of multiple-choice questions to test your knowledge of Kubernetes security concepts.
-            </p>
-            <p className="about-text">
-              The exam is timed, and you will have 1 minute per question. You can flag questions to review later. Once you finish the exam, you can review your answers and see explanations for each question.
-            </p>
-            <p className="about-text">
-              <strong>New Feature:</strong> Star your favorite questions to create custom practice exams! Use the star button (☆) next to any question to save it, then start a "Starred Exam" to practice only with your saved questions.
-            </p>
-          </div>
-          {/* Invite people to contribute to the project on GitHub. */}
-          <div className="about-footer">
-            <p className="about-text">
-              If you'd like to contribute to this project, please visit the GitHub repository.
-            </p>
-            <a
-              href="https://github.com/thiago4go/kubernetes-security-kcsa-mock"
-              className="github-link"
-            >
-              GitHub Repository
-            </a>
-          </div>
-        </div>
-
-        <div className="creator-container">
-          <div className="creator-header">
-            <h2 className="section-title">About the Creator</h2>
-          </div>
-          <div className="image-container">
-            <img
-              src="/Kubestronaut.png"
-              alt="Kubestronaut"
-              className="responsive-image"
-            />
-          </div>
-
-          <div className="creator-content">
-            <dl className="creator-details">
-              <div className="detail-row">
-                <dt className="detail-label">Name</dt>
-                <dd className="detail-content">Thiago S Shimada Ramos</dd>
-              </div>
-              <div className="detail-row">
-                <dt className="detail-label">Bio</dt>
-                <dd className="detail-content">
-                  Tech Leader driving business growth with AI-powered Cloud-Native solutions working with Kubernetes, Open Source, OpenShift and Champion for Green Software!🍀
-                </dd>
-              </div>
-              <div className="detail-row">
-                <dt className="detail-label">About</dt>
-
-
-                <dd className="detail-content">
-
-
-                  <p>Hi, I'm Thiago. I'm a cloud-native developer with a passion for Kubernetes and secure systems. With a background spanning Brazil, Japan, and now Australia, I enjoy tackling complex problems. 💻</p>
-                  <p className="mt-2">I'm an active member of the CNCF Security TAG and co-organizer of the Melbourne Kubernetes User Group. When I'm not coding, I'm usually playing Go or solving a Rubik's cube.</p>
-                </dd>
-              </div>
-              <div className="detail-row">
-                <dt className="detail-label">Links</dt>
-                <dd className="detail-content">
-                  <div className="links">
-                    <a href="http://thiago4go.github.io/" className="link">Blog</a>
-                    <a href="https://www.linkedin.com/in/thiago4go/" className="link">LinkedIn</a>
-                    <a href="https://github.com/thiago4go" className="link">GitHub</a>
-                  </div>
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div className="community-container">
-          <div className="community-header">
-            <h2 className="section-title">Community Involvement</h2>
-          </div>
-          <div className="community-content">
-            <dl className="community-details">
-              <div className="detail-row">
-                <dt className="detail-label">TAG Security and Compliance</dt>
-                <dd className="detail-content">
-                  <p>Member of TAG Security and Compliance APAC</p>
-                  <a href="https://cloud-native.slack.com/?redir=%2Farchives%2FC08JZ9YLAA3%3Fname%3DC08JZ9YLAA3" className="link">Join the CNCF Slack</a>
-                  <div className="community-logo">
-                    <img src="https://lfx-cdn-prod.s3.us-east-1.amazonaws.com/project-artifacts/tag-security-and-compliance/tag-security-and-compliance-logo.svg" alt="TAG Securrity and Compliance" />
-                  </div>
-                </dd>
-              </div>
-              <div className="detail-row">
-                <dt className="detail-label">Cloud Native Melbourne</dt>
-                <dd className="detail-content">
-                  <p>Chapter organiser for Cloud Native Melbourne</p>
-                  <a href="https://community.cncf.io/cloud-native-melbourne/" className="link">Visit Cloud Native Melbourne</a>
-                  <div className="community-logo">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/yamljson-lj2aTJhd3a9ui4btKFBp3GeqODqXbP.png" alt="Cloud Native Melbourne Logo" />
-                  </div>
-                </dd>
-              </div>
-              <div className="detail-row">
-                <dt className="detail-label">KSUG</dt>
-                <dd className="detail-content">
-                  <p>Global Volunteer Advocate and Co-host for KSUG</p>
-                  <a href="https://www.linkedin.com/company/k8sug/" className="link">Visit KSUG on LinkedIn</a>
-                  <div className="community-logo">
-                    <img src="https://ksug.ai/assets/Logo-C22ZmRMJ.jpg" alt="KSUG Logo" />
-                  </div>
-                </dd>
-              </div>
-            </dl>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
