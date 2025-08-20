@@ -41,6 +41,11 @@ body {
   max-width: 900px;
 }
 
+.App:has(.review-flagged) {
+  max-width: 900px;
+}
+
+
 h1 {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
@@ -193,7 +198,7 @@ input[type="number"]:focus {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   margin-bottom: var(--space-3);
-  color: var(--color-text-primary);
+  /* color: var(--color-text-primary); */
 }
 
 .question-review {
