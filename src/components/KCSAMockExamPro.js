@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // --- Helper UI Components ---
 function Stat({ icon: Icon, label, value, hint }) {
@@ -443,6 +444,7 @@ export default function KCSAMockExamPro({
   const [starredOnly, setStarredOnly] = useState(false);
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [shuffle, setShuffle] = useState(true);
+  const navigate = useNavigate();
 
   const totalQuestions = maxQuestions || 1000;
   const starredCount = starredQuestions?.length || 0;
@@ -473,10 +475,20 @@ export default function KCSAMockExamPro({
 
   const handleStartExam = () => {
     startExam(starredOnly);
+    // Update localStorage to indicate exam has started
+    localStorage.setItem('examStarted', 'true');
+    localStorage.setItem('examFinished', 'false');
+    localStorage.setItem('reviewingFlagged', 'false');
+    navigate('/exam');
   };
 
   const handleStartStarred = () => {
     startExam(true);
+    // Update localStorage to indicate exam has started
+    localStorage.setItem('examStarted', 'true');
+    localStorage.setItem('examFinished', 'false');
+    localStorage.setItem('reviewingFlagged', 'false');
+    navigate('/exam');
   };
 
   return (

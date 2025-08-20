@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Question from './Question';
 import Navigation from './Navigation';
 
@@ -9,10 +10,10 @@ function ReviewFlagged({
   flaggedQuestions,
   setFlaggedQuestions,
   starredQuestions,
-  setStarredQuestions,
-  onFinish
+  setStarredQuestions
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const navigate = useNavigate();
   const flaggedQuestionIds = flaggedQuestions.filter(id => questions.some(q => q.id === id));
   const currentQuestion = questions.find(q => q.id === flaggedQuestionIds[currentIndex]);
 
@@ -33,13 +34,21 @@ function ReviewFlagged({
     }
   };
 
+  const handleFinishReview = () => {
+    // Update localStorage to indicate exam is finished
+    localStorage.setItem('examFinished', 'true');
+    localStorage.setItem('examStarted', 'false');
+    localStorage.setItem('reviewingFlagged', 'false');
+    navigate('/results');
+  };
+
   return (
     <div className="review-flagged">
       <div className="review-header">
         <h2>Review Flagged Questions</h2>
         <button 
           className="finish-review-btn"
-          onClick={onFinish}
+          onClick={handleFinishReview}
           title="Finish review and see results"
         >
           Finish Review
@@ -62,7 +71,7 @@ function ReviewFlagged({
               if (currentIndex < flaggedQuestionIds.length - 1) {
                 setCurrentIndex(currentIndex + 1);
               } else {
-                onFinish();
+                navigate('/results');
               }
             }}
             onFlag={handleFlag}
@@ -75,7 +84,7 @@ function ReviewFlagged({
       ) : (
         <div>
           <p>No flagged questions to review.</p>
-          <button onClick={onFinish}>Finish Exam</button>
+          <button onClick={handleFinishReview}>Finish Exam</button>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Question from './Question';
 import Navigation from './Navigation';
 import ProgressBar from './ProgressBar';
@@ -14,18 +15,18 @@ function Exam({
   setCurrentQuestionIndex,
   timeLeft,
   setTimeLeft,
-  onFinish,
   starredQuestions,
   setStarredQuestions
 }) {
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
           clearInterval(timer);
-          onFinish();
+          navigate('/review');
           return 0;
         }
         return prevTime - 1;
@@ -33,14 +34,61 @@ function Exam({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [setTimeLeft, onFinish]);
+  }, [setTimeLeft, navigate]);
+
+  // Add safety check for questions array
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="exam">
+        <div className="exam-header">
+          <div className="timer">No questions available</div>
+          <button
+            className="finish-exam-btn"
+            onClick={() => navigate('/')}
+            title="Go back to home"
+          >
+            Back to Home
+          </button>
+        </div>
+        <div className="exam-content">
+          <p>No questions are available. Please go back and try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Add safety check for currentQuestionIndex
+  if (currentQuestionIndex >= questions.length) {
+    setCurrentQuestionIndex(0);
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+  if (!currentQuestion) {
+    return (
+      <div className="exam">
+        <div className="exam-header">
+          <div className="timer">Question not found</div>
+          <button
+            className="finish-exam-btn"
+            onClick={() => navigate('/')}
+            title="Go back to home"
+          >
+            Back to Home
+          </button>
+        </div>
+        <div className="exam-content">
+          <p>Question not found. Please go back and try again.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleAnswer = (questionId, selectedAnswers) => {
     setUserAnswers({ ...userAnswers, [questionId]: selectedAnswers });
   };
 
   const handleFlag = () => {
-    const currentQuestionId = questions[currentQuestionIndex].id;
+    const currentQuestionId = currentQuestion.id;
     if (flaggedQuestions.includes(currentQuestionId)) {
       setFlaggedQuestions(flaggedQuestions.filter(id => id !== currentQuestionId));
     } else {
@@ -66,13 +114,19 @@ function Exam({
     setIsSideMenuOpen(!isSideMenuOpen);
   };
 
+  const handleFinishExam = () => {
+    // Update localStorage to indicate we're reviewing flagged questions
+    localStorage.setItem('reviewingFlagged', 'true');
+    navigate('/review');
+  };
+
   return (
     <div className="exam">
       <div className="exam-header">
         <div className="timer">Time left: {formatTime(timeLeft)}</div>
-        <button 
+        <button
           className="finish-exam-btn"
-          onClick={onFinish}
+          onClick={handleFinishExam}
           title="Finish exam and review answers"
         >
           Finish Exam
@@ -96,11 +150,11 @@ function Exam({
         <div className="main-content">
           <ProgressBar current={currentQuestionIndex + 1} total={questions.length} />
           <Question
-            question={questions[currentQuestionIndex]}
+            question={currentQuestion}
             onAnswer={handleAnswer}
-            userAnswer={userAnswers[questions[currentQuestionIndex].id] || []}
+            userAnswer={userAnswers[currentQuestion.id] || []}
             onStar={handleStar}
-            isStarred={starredQuestions.includes(questions[currentQuestionIndex].id)}
+            isStarred={starredQuestions.includes(currentQuestion.id)}
           />
           <Navigation
             currentIndex={currentQuestionIndex}
@@ -110,14 +164,14 @@ function Exam({
               if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
               } else {
-                onFinish();
+                navigate('/review');
               }
             }}
             onFlag={handleFlag}
-            isFlagged={flaggedQuestions.includes(questions[currentQuestionIndex].id)}
+            isFlagged={flaggedQuestions.includes(currentQuestion.id)}
             onStar={handleStar}
-            isStarred={starredQuestions.includes(questions[currentQuestionIndex].id)}
-            questionId={questions[currentQuestionIndex].id}
+            isStarred={starredQuestions.includes(currentQuestion.id)}
+            questionId={currentQuestion.id}
           />
         </div>
       </div>

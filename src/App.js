@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Exam from './components/Exam';
 import Results from './components/Results';
 import ReviewFlagged from './components/ReviewFlagged';
 import KCSAMockExamPro from './components/KCSAMockExamPro';
 import Header from './components/Header';
-import { getAllQuestions, getAvailableDomains } from './questionsDatabase'; // adjust the path as needed
-
+import { getAllQuestions, getAvailableDomains } from './questionsDatabase';
 import useLocalStorage from './hooks/useLocalStorage';
 import { Analytics } from "@vercel/analytics/react"
 import './styles/star-feature.css';
 
 function App() {
-  // Removed unused 'questions' and 'setQuestions' state
   const [loading, setLoading] = useState(true);
   const [examStarted, setExamStarted] = useState(false);
   const [examFinished, setExamFinished] = useState(false);
@@ -27,6 +26,139 @@ function App() {
   const [selectedDomains, setSelectedDomains] = useLocalStorage('selectedDomains', []);
   const [useStarredOnly, setUseStarredOnly] = useState(false);
 
+  // Define all callback functions using useCallback
+  const setNumQuestionsCallback = useCallback((value) => {
+    setNumQuestions(value);
+  }, []);
+
+  const setSelectedDomainsCallback = useCallback((value) => {
+    setSelectedDomains(value);
+  }, []);
+
+  const setStarredQuestionsCallback = useCallback((value) => {
+    setStarredQuestions(value);
+  }, []);
+
+  const setUserAnswersCallback = useCallback((value) => {
+    setUserAnswers(value);
+  }, []);
+
+  const setFlaggedQuestionsCallback = useCallback((value) => {
+    setFlaggedQuestions(value);
+  }, []);
+
+  const setCurrentQuestionIndexCallback = useCallback((value) => {
+    setCurrentQuestionIndex(value);
+  }, []);
+
+  const setTimeLeftCallback = useCallback((value) => {
+    setTimeLeft(value);
+  }, []);
+
+  const shuffleArray = useCallback((array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
+
+  const startExam = useCallback(async (starredOnly = false) => {
+    if (selectedDomains.length === 0) {
+      console.error("Cannot start exam with no domains selected.");
+      return;
+    }
+
+    if (starredOnly && starredQuestions.length === 0) {
+      alert("You don't have any starred questions yet. Please star some questions first or start a regular exam.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let filteredQuestions = await getAllQuestions(selectedDomains);
+
+      if (starredOnly) {
+        filteredQuestions = filteredQuestions.filter(q => starredQuestions.includes(q.id));
+        console.log(`Filtered to ${filteredQuestions.length} starred questions`);
+      }
+
+      if (filteredQuestions.length === 0) {
+        console.error("No questions found for the selected criteria.");
+        setLoading(false);
+        return;
+      }
+
+      const actualNumQuestions = Math.min(numQuestions, filteredQuestions.length);
+      if (numQuestions > filteredQuestions.length) {
+        console.warn(`Requested ${numQuestions} questions, but only ${filteredQuestions.length} are available for the selected criteria. Using ${filteredQuestions.length}.`);
+        setNumQuestions(actualNumQuestions);
+      }
+
+      const shuffledQuestions = shuffleArray(filteredQuestions);
+      const selectedQuestions = shuffledQuestions.slice(0, actualNumQuestions);
+
+      setExamQuestions(selectedQuestions);
+      setExamStarted(true);
+      setExamFinished(false);
+      setReviewingFlagged(false);
+      setUserAnswers({});
+      setFlaggedQuestions([]);
+      setCurrentQuestionIndex(0);
+      setTimeLeft(actualNumQuestions * 60);
+      setUseStarredOnly(starredOnly);
+      localStorage.setItem('examStarted', 'true');
+      localStorage.setItem('examFinished', 'false');
+      localStorage.setItem('reviewingFlagged', 'false');
+    } catch (err) {
+      console.error("Error starting exam:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDomains, starredQuestions, numQuestions, shuffleArray, setExamQuestions, setUserAnswers, setFlaggedQuestions, setCurrentQuestionIndex, setTimeLeft]);
+
+  const restartExam = useCallback(() => {
+    setExamStarted(false);
+    setExamFinished(false);
+    setReviewingFlagged(false);
+    setUserAnswers({});
+    setFlaggedQuestions([]);
+    setCurrentQuestionIndex(0);
+    setTimeLeft(0);
+    setExamQuestions([]);
+    setUseStarredOnly(false);
+    localStorage.removeItem('examStarted');
+    localStorage.removeItem('examFinished');
+    localStorage.removeItem('reviewingFlagged');
+    localStorage.removeItem('examQuestions');
+    localStorage.removeItem('userAnswers');
+    localStorage.removeItem('flaggedQuestions');
+    localStorage.removeItem('currentQuestionIndex');
+    localStorage.removeItem('timeLeft');
+  }, [setUserAnswers, setFlaggedQuestions, setCurrentQuestionIndex, setTimeLeft, setExamQuestions]);
+
+  // Memoize computed values
+  const maxQuestions = useMemo(() => {
+    return availableDomains.length > 0 ? 1000 : 0;
+  }, [availableDomains.length]);
+
+  const shouldShowHome = useMemo(() => {
+    return !examStarted && !examFinished && !reviewingFlagged;
+  }, [examStarted, examFinished, reviewingFlagged]);
+
+  const shouldShowExam = useMemo(() => {
+    return examStarted && !reviewingFlagged && examQuestions.length > 0;
+  }, [examStarted, reviewingFlagged, examQuestions.length]);
+
+  const shouldShowReview = useMemo(() => {
+    return reviewingFlagged && examQuestions.length > 0;
+  }, [reviewingFlagged, examQuestions.length]);
+
+  const shouldShowResults = useMemo(() => {
+    return examFinished && examQuestions.length > 0;
+  }, [examFinished, examQuestions.length]);
+
   // Load available domains and potentially all questions initially (or just domains)
   useEffect(() => {
     setLoading(true);
@@ -37,16 +169,13 @@ function App() {
         if (selectedDomains.length === 0 && domains.length > 0) {
           setSelectedDomains(domains);
         }
-        // Optionally load all questions here if needed elsewhere, or just fetch filtered ones later
-        // For now, just mark loading as false after getting domains
         setLoading(false);
       })
       .catch(err => {
         console.error("Error loading domains:", err);
-        setLoading(false); // Ensure loading stops even on error
+        setLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount, disable warning for conditional setSelectedDomains
+  }, [selectedDomains.length]);
 
   // Load persisted state from localStorage
   useEffect(() => {
@@ -67,179 +196,128 @@ function App() {
     }
   }, []);
 
+  // Update localStorage when state changes - consolidated into one useEffect
+  useEffect(() => {
+    localStorage.setItem('examStarted', examStarted.toString());
+    localStorage.setItem('examFinished', examFinished.toString());
+    localStorage.setItem('reviewingFlagged', reviewingFlagged.toString());
+  }, [examStarted, examFinished, reviewingFlagged]);
+
   if (loading) {
-    return <div>Loading exam data...</div>; // Updated loading message
+    return (
+      <div className="App">
+        <Header />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '50vh',
+          fontSize: '1.2rem',
+          color: 'var(--color-text-secondary)'
+        }}>
+          Loading exam data...
+        </div>
+        <Analytics />
+      </div>
+    );
   }
 
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-  // Removed console.log("Exam Questions:", questions); as it logged all questions before filtering
-
-  const startExam = async (starredOnly = false) => { // Make async to await getAllQuestions
-    if (selectedDomains.length === 0) {
-      console.error("Cannot start exam with no domains selected.");
-      // Optionally show an error message to the user
-      return;
-    }
-
-    // Check if user wants to use starred questions only
-    if (starredOnly && starredQuestions.length === 0) {
-      alert("You don't have any starred questions yet. Please star some questions first or start a regular exam.");
-      return;
-    }
-
-    setLoading(true); // Show loading indicator while fetching/processing
-    try {
-      let filteredQuestions = await getAllQuestions(selectedDomains);
-
-      // If using starred questions only, filter to only include starred ones
-      if (starredOnly) {
-        filteredQuestions = filteredQuestions.filter(q => starredQuestions.includes(q.id));
-        console.log(`Filtered to ${filteredQuestions.length} starred questions`);
-      }
-
-      if (filteredQuestions.length === 0) {
-        console.error("No questions found for the selected criteria.");
-        // Optionally show an error message to the user
-        setLoading(false);
-        return;
-      }
-
-      // Adjust numQuestions if it exceeds the number of available filtered questions
-      const actualNumQuestions = Math.min(numQuestions, filteredQuestions.length);
-      if (numQuestions > filteredQuestions.length) {
-        console.warn(`Requested ${numQuestions} questions, but only ${filteredQuestions.length} are available for the selected criteria. Using ${filteredQuestions.length}.`);
-        setNumQuestions(filteredQuestions.length); // Update state if adjusted
-      }
-
-      const shuffledQuestions = shuffleArray(filteredQuestions);
-      const selectedQuestions = shuffledQuestions.slice(0, actualNumQuestions);
-
-      setExamQuestions(selectedQuestions);
-      setExamStarted(true);
-      setExamFinished(false);
-      setReviewingFlagged(false);
-      setUserAnswers({});
-      setFlaggedQuestions([]);
-      setCurrentQuestionIndex(0);
-      setTimeLeft(actualNumQuestions * 60); // Use actual number of questions for timer
-      setUseStarredOnly(starredOnly);
-      localStorage.setItem('examStarted', 'true');
-      localStorage.setItem('examFinished', 'false');
-      localStorage.setItem('reviewingFlagged', 'false');
-    } catch (err) {
-      console.error("Error starting exam:", err);
-      // Optionally show an error message to the user
-    } finally {
-      setLoading(false); // Hide loading indicator
-    }
-  };
-
-  const finishExam = () => {
-    // Removed setUserAnswers({}) and setFlaggedQuestions([]) which were clearing results prematurely
-    setExamFinished(true);
-    setExamStarted(false);
-    setReviewingFlagged(false); // Ensure review flag is off when finishing
-    localStorage.setItem('examStarted', 'false');
-    localStorage.setItem('examFinished', 'true');
-    localStorage.setItem('reviewingFlagged', 'false');
-  };
-
-  const startReview = () => {
-    setReviewingFlagged(true);
-    localStorage.setItem('reviewingFlagged', 'true');
-  };
-
-  // Removed unused endReview function
-
-  const restartExam = () => {
-    setExamStarted(false);
-    setExamFinished(false);
-    setReviewingFlagged(false);
-    setUserAnswers({});
-    setFlaggedQuestions([]);
-    setCurrentQuestionIndex(0);
-    setTimeLeft(0);
-    setExamQuestions([]);
-    setUseStarredOnly(false);
-    localStorage.removeItem('examStarted');
-    localStorage.removeItem('examFinished');
-    localStorage.removeItem('reviewingFlagged');
-    localStorage.removeItem('examQuestions');
-    localStorage.removeItem('userAnswers');
-    localStorage.removeItem('flaggedQuestions');
-    localStorage.removeItem('currentQuestionIndex');
-    localStorage.removeItem('timeLeft');
-  };
-
   return (
-    <div className="App">
-      <Header />
+    <Router>
+      <div className="App">
+        <Header />
 
-      {!examStarted && !examFinished && !reviewingFlagged ? (
-        <KCSAMockExamPro
-          numQuestions={numQuestions}
-          setNumQuestions={setNumQuestions}
-          startExam={startExam}
-          // maxQuestions prop is less relevant now as it's handled dynamically in startExam
-          // We could pass a function to get the count based on selected domains if needed for display
-          maxQuestions={availableDomains.length > 0 ? 1000 : 0} // Placeholder, actual limit is dynamic
-          availableDomains={availableDomains}
-          selectedDomains={selectedDomains}
-          setSelectedDomains={setSelectedDomains}
-          starredQuestions={starredQuestions}
-          setStarredQuestions={setStarredQuestions}
-          onRestart={restartExam}
-        />
-      ) : (
-        <>
-          {examStarted && !reviewingFlagged && (
-            <Exam
-              questions={examQuestions}
-              userAnswers={userAnswers}
-              setUserAnswers={setUserAnswers}
-              flaggedQuestions={flaggedQuestions}
-              setFlaggedQuestions={setFlaggedQuestions}
-              currentQuestionIndex={currentQuestionIndex}
-              setCurrentQuestionIndex={setCurrentQuestionIndex}
-              timeLeft={timeLeft}
-              setTimeLeft={setTimeLeft}
-              onFinish={startReview}
-              starredQuestions={starredQuestions}
-              setStarredQuestions={setStarredQuestions}
-            />
-          )}
-          {reviewingFlagged && (
-            <ReviewFlagged
-              questions={examQuestions}
-              userAnswers={userAnswers}
-              setUserAnswers={setUserAnswers}
-              flaggedQuestions={flaggedQuestions}
-              setFlaggedQuestions={setFlaggedQuestions}
-              starredQuestions={starredQuestions}
-              setStarredQuestions={setStarredQuestions}
-              onFinish={finishExam}
-            />
-          )}
-          {examFinished && (
-            <Results
-              questions={examQuestions}
-              userAnswers={userAnswers}
-              onRestart={restartExam}
-              starredQuestions={starredQuestions}
-              setStarredQuestions={setStarredQuestions}
-            />
-          )}
-        </>
-      )}
-      <Analytics />
-    </div>
+        <Routes>
+          {/* Home page - KCSAMockExamPro component */}
+          <Route
+            path="/"
+            element={
+              // shouldShowHome ? (
+              <KCSAMockExamPro
+                numQuestions={numQuestions}
+                setNumQuestions={setNumQuestionsCallback}
+                startExam={startExam}
+                maxQuestions={maxQuestions}
+                availableDomains={availableDomains}
+                selectedDomains={selectedDomains}
+                setSelectedDomains={setSelectedDomainsCallback}
+                starredQuestions={starredQuestions}
+                setStarredQuestions={setStarredQuestionsCallback}
+              />
+              // ) : (
+              //   <Navigate to="/exam" replace />
+              // )
+            }
+          />
+
+          {/* Exam page */}
+          <Route
+            path="/exam"
+            element={
+              // shouldShowExam ? (
+              <Exam
+                questions={examQuestions}
+                userAnswers={userAnswers}
+                setUserAnswers={setUserAnswersCallback}
+                flaggedQuestions={flaggedQuestions}
+                setFlaggedQuestions={setFlaggedQuestionsCallback}
+                currentQuestionIndex={currentQuestionIndex}
+                setCurrentQuestionIndex={setCurrentQuestionIndexCallback}
+                timeLeft={timeLeft}
+                setTimeLeft={setTimeLeftCallback}
+                starredQuestions={starredQuestions}
+                setStarredQuestions={setStarredQuestionsCallback}
+              />
+              // ) : (
+              //   <Navigate to="/" replace />
+              // )
+            }
+          />
+
+          {/* Review flagged questions page */}
+          <Route
+            path="/review"
+            element={
+              // shouldShowReview ? (
+              <ReviewFlagged
+                questions={examQuestions}
+                userAnswers={userAnswers}
+                setUserAnswers={setUserAnswersCallback}
+                flaggedQuestions={flaggedQuestions}
+                setFlaggedQuestions={setFlaggedQuestionsCallback}
+                starredQuestions={starredQuestions}
+                setStarredQuestions={setStarredQuestionsCallback}
+              />
+              // ) : (
+              //   <Navigate to="/" replace />
+              // )
+            }
+          />
+
+          {/* Results page */}
+          <Route
+            path="/results"
+            element={
+              // shouldShowResults ? (
+              <Results
+                questions={examQuestions}
+                userAnswers={userAnswers}
+                starredQuestions={starredQuestions}
+                setStarredQuestions={setStarredQuestionsCallback}
+              />
+              // ) : (
+              //   <Navigate to="/" replace />
+              // )
+            }
+          />
+
+          {/* Catch all route - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+
+        <Analytics />
+      </div>
+    </Router>
   );
 }
 

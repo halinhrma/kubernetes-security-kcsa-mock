@@ -1,10 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react'; // Import useEffect
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import './Results.css'; // Import the Results-specific CSS
 
-function Results({ questions, userAnswers, onRestart, starredQuestions, setStarredQuestions }) {
+function Results({ questions, userAnswers, starredQuestions, setStarredQuestions }) {
   // State to manage visibility of sources for each question
   const [showSourcesMap, setShowSourcesMap] = useState({});
+  const navigate = useNavigate();
 
   // Debug function to log computed styles
   useEffect(() => {
@@ -43,6 +45,19 @@ function Results({ questions, userAnswers, onRestart, starredQuestions, setStarr
     } else {
       setStarredQuestions([...starredQuestions, questionId]);
     }
+  };
+
+  const handleRestart = () => {
+    // Clear all exam state
+    localStorage.removeItem('examStarted');
+    localStorage.removeItem('examFinished');
+    localStorage.removeItem('reviewingFlagged');
+    localStorage.removeItem('examQuestions');
+    localStorage.removeItem('userAnswers');
+    localStorage.removeItem('flaggedQuestions');
+    localStorage.removeItem('currentQuestionIndex');
+    localStorage.removeItem('timeLeft');
+    navigate('/');
   };
 
   // Helper to check if a single question is answered correctly
@@ -134,7 +149,7 @@ function Results({ questions, userAnswers, onRestart, starredQuestions, setStarr
         <h2 className="results-title">Exam Results</h2>
         <button 
           className="restart-results-btn"
-          onClick={onRestart}
+          onClick={handleRestart}
           title="Start a new exam"
         >
           🔄 Start New Exam
@@ -251,7 +266,7 @@ function Results({ questions, userAnswers, onRestart, starredQuestions, setStarr
       </div>
       
       <div className="results-actions">
-        <button className="restart-btn" onClick={onRestart}>
+        <button className="restart-btn" onClick={handleRestart}>
           Restart Exam
         </button>
       </div>
